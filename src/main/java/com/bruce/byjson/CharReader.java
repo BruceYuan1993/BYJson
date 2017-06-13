@@ -2,11 +2,13 @@ package com.bruce.byjson;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Objects;
 
 /**
  * Created by bruceyuan on 17-5-10.
  */
 public class CharReader {
+    static final String REACHED_END = "Reached end";
     private static final int BUFF_SIZE = 1024;
     private char[] buff;
     private Reader reader;
@@ -14,22 +16,16 @@ public class CharReader {
     private int size;
     private int readed;
 
-
     public CharReader(Reader reader) {
         this.reader = reader;
         buff=new char[BUFF_SIZE];
     }
 
     public char next(){
-        checkAndRefreshBuff();
-        char c =  buff[pos];
+        checkAndRefreshBuff(REACHED_END);
+        char c = buff[pos];
         pos++;
         return c;
-    }
-
-    public boolean hasMore(){
-        checkAndRefreshBuff();
-        return pos < size;
     }
 
     public String next(int len){
@@ -41,32 +37,43 @@ public class CharReader {
     }
 
     public char peek(){
-        checkAndRefreshBuff();
+        checkAndRefreshBuff(REACHED_END);
         char c =  buff[pos];
         return c;
     }
 
+    public boolean hasMore(){
+        checkAndRefreshBuff(null);
+        return pos < size;
+    }
 
-    private void checkAndRefreshBuff() {
+    public void skip(){
+        checkAndRefreshBuff(REACHED_END);
+        pos++;
+    }
+
+    public int getReaded() {
+        return readed;
+    }
+
+    private void checkAndRefreshBuff(String exceptionMsg) {
         if (pos == size){
-            refreshBuff();
+            refreshBuff(exceptionMsg);
         }
     }
 
-    private void refreshBuff() {
-        refreshBuff(false);
-    }
-
-    private void refreshBuff(boolean throwException) {
+    private void refreshBuff(String exceptionMsg) {
         try {
             int len = reader.read(buff);
+
             if (len == -1){
-                if (throwException){
-                    throw new RuntimeException();
-                }else{
+                if (exceptionMsg == null || exceptionMsg.equals("")){
                     return;
+                }else{
+                    throw new JsonParseException(exceptionMsg, readed);
                 }
             }
+
             size = len;
             readed += len;
             pos = 0;
