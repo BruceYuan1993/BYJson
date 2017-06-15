@@ -7,15 +7,15 @@ public enum Token {
     /*
 
      */
-    START_OBJ,
-    END_OBJ,
-    START_ARRAY,
-    END_ARRAY,
+    OBJ_START,
+    OBJ_END,
+    ARRAY_START,
+    ARRAY_END,
     NULL,
     STRING,
     NUMBER,
     BOOLEAN,
     COMMA,
     COLON,
-    END_DOC
+    DOC_END
 }

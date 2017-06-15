@@ -27,27 +27,27 @@ public class TokenReader {
         char ch = '?';
         do{
             if (!chReader.hasMore()) {
-                return Token.END_DOC;
+                return Token.DOC_END;
             }
             ch = chReader.peek();
-        }while (isSpaceChar(ch));
+        } while (isSpaceChar(ch));
 
         switch (ch){
             case '{' :
                 chReader.skip();
-                token = Token.START_OBJ;
+                token = Token.OBJ_START;
                 break;
             case '}' :
                 chReader.skip();
-                token = Token.END_OBJ;
+                token = Token.OBJ_END;
                 break;
             case '[' :
                 chReader.skip();
-                token = Token.START_ARRAY;
+                token = Token.ARRAY_START;
                 break;
             case ']' :
                 chReader.skip();
-                token = Token.END_ARRAY;
+                token = Token.ARRAY_END;
                 break;
             case ':' :
                 chReader.skip();
@@ -208,7 +208,7 @@ public class TokenReader {
         }
         if (chReader.hasMore()) {
             c = chReader.peek();
-            if (isZeroInt && c != '.' && isExp(c)) {
+            if (isZeroInt && c != '.' && !isExp(c)) {
                 throw new JsonParseException("Unexpected char: " + c, chReader.getReaded());
             }
 
@@ -292,7 +292,10 @@ public class TokenReader {
 
             result = result * Math.pow(10, isExpMinus ? -epart: epart);
         }
-
+        //-0.0  -> 0.0
+        if (result == 0.0) {
+            isMinus = false;
+        }
         return new Double(isMinus ? -result : result);
     }
 
@@ -320,7 +323,7 @@ public class TokenReader {
 //                throw new JsonParseException("Unexpected char: " + a, chReader.getReaded());
 //            }
 //        }
-        for (int i = 0; i < expected.length(); i++){
+        for (int i = 0; i < expected.length(); i++) {
             char item = chReader.next();
             if (item != expected.charAt(i)){
                 throw new JsonParseException("Unexpected char: " + item, chReader.getReaded());
@@ -328,12 +331,12 @@ public class TokenReader {
         }
     }
 
-    private boolean isDigit(char c){
+    private boolean isDigit(char c) {
         //Character.isDigit(ch)
         return c >= '0' && c <= '9';
     }
 
-    private boolean isExp(char c){
+    private boolean isExp(char c) {
         return c == 'e' || c == 'E';
     }
 
@@ -366,4 +369,7 @@ public class TokenReader {
         return stringToLong(sb) / Math.pow(10,sb.length());
     }
 
+    public CharReader getReader(){
+        return chReader;
+    }
 }
