@@ -1,6 +1,8 @@
 package com.bruce.byjson;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Stack;
 
 /**
  * Created by bruceyuan on 17-6-13.
@@ -20,10 +22,11 @@ public class JsonReader {
     }
 
     private TokenReader reader = null;
-    private EnumSet<JsonReadingState> status = null;
+    private EnumSet<JsonReadingState> expectStatus = null;
 
     public void parse(){
-        status = EnumSet.of(JsonReadingState.ARRAY_START,
+        Stack stack = new Stack();
+        expectStatus = EnumSet.of(JsonReadingState.ARRAY_START,
                 JsonReadingState.OBJ_START);
 
         while (true){
@@ -41,33 +44,43 @@ public class JsonReader {
             Token token = reader.nextToken();
             switch (token) {
                 case OBJ_START:
-                    //status.contains()
-                    break;
+                    if (expectStatus.contains(JsonReadingState.OBJ_START)) {
+                        stack.push(new HashMap<String,Object>());
+                        expectStatus = EnumSet.of(JsonReadingState.PAIR_KEY,
+                                JsonReadingState.OBJ_END);
+                    }
+                    continue;
                 case OBJ_END:
+                    if (expectStatus.contains(JsonReadingState.OBJ_END)) {
+                        stack.push(new HashMap<String,Object>());
+                        expectStatus = EnumSet.of(JsonReadingState.DOC_END,
+                                JsonReadingState.COMMA, JsonReadingState.OBJ_END,
+                                JsonReadingState.ARRAY_END);
+                    }
                     break;
                 case ARRAY_START:
                     break;
                 case ARRAY_END:
                     break;
                 case NULL:
-                    if (status.contains(JsonReadingState.ARRAY_ITEM)) {}
-                    if (status.contains(JsonReadingState.PAIR_VALUE)) {}
+                    if (expectStatus.contains(JsonReadingState.ARRAY_ITEM)) {}
+                    if (expectStatus.contains(JsonReadingState.PAIR_VALUE)) {}
                     throw new JsonParseException("Unexpected null", reader.getReader().getReaded());
                     //break;
                 case STRING:
-                    if (status.contains(JsonReadingState.PAIR_KEY)) {}
-                    if (status.contains(JsonReadingState.ARRAY_ITEM)) {}
-                    if (status.contains(JsonReadingState.PAIR_VALUE)) {}
+                    if (expectStatus.contains(JsonReadingState.PAIR_KEY)) {}
+                    if (expectStatus.contains(JsonReadingState.ARRAY_ITEM)) {}
+                    if (expectStatus.contains(JsonReadingState.PAIR_VALUE)) {}
                     throw new JsonParseException("Unexpected boolean", reader.getReader().getReaded());
                     //break;
                 case BOOLEAN:
-                    if (status.contains(JsonReadingState.ARRAY_ITEM)) {}
-                    if (status.contains(JsonReadingState.PAIR_VALUE)) {}
+                    if (expectStatus.contains(JsonReadingState.ARRAY_ITEM)) {}
+                    if (expectStatus.contains(JsonReadingState.PAIR_VALUE)) {}
                     throw new JsonParseException("Unexpected boolean", reader.getReader().getReaded());
                     //break;
                 case NUMBER:
-                    if (status.contains(JsonReadingState.ARRAY_ITEM)) {}
-                    if (status.contains(JsonReadingState.PAIR_VALUE)) {}
+                    if (expectStatus.contains(JsonReadingState.ARRAY_ITEM)) {}
+                    if (expectStatus.contains(JsonReadingState.PAIR_VALUE)) {}
                     throw new JsonParseException("Unexpected null", reader.getReader().getReaded());
                     //break;
                 case COMMA:
