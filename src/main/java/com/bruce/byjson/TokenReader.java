@@ -25,13 +25,17 @@ public class TokenReader {
     Token nextToken() {
         Token token = null;
         char ch = '?';
-        do{
+        while (true){
             if (!chReader.hasMore()) {
+                // EOF:
                 return Token.DOC_END;
             }
             ch = chReader.peek();
-        } while (isSpaceChar(ch));
-
+            if (!isSpaceChar(ch)){
+                break;
+            }
+            chReader.skip();
+        }
         switch (ch){
             case '{' :
                 chReader.skip();
@@ -69,6 +73,7 @@ public class TokenReader {
                 token = Token.STRING;
                 break;
             default:
+                break;
         }
 
         if (ch == '-' || isDigit(ch)){
